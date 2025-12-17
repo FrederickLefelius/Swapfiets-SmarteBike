@@ -1,0 +1,36 @@
+from machine import I2C
+from machine import Pin
+from time import sleep
+import time #gør at jeg kan lave en non-blocking delay
+from mpu6050 import MPU6050
+import sys
+
+
+
+i2c = I2C(0)
+imu = MPU6050(i2c)
+
+
+treshold = -2500
+red_LED=Pin(26,Pin.OUT)
+
+timer = 100 #vores timer
+delay = 1500 #det er vores ms
+
+
+
+while True:
+    values = imu.get_values()
+    x_værdi = values.get("acc x")
+    now = time.ticks_ms()
+    
+    if x_værdi < -2000:
+        if time.ticks_diff(now, timer) >= delay:
+            print("Bremsning Registreret")
+            red_LED.on()
+        
+    else:
+        print("Ingen Bremsning")
+        red_LED.off()
+    
+    
