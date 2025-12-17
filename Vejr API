@@ -1,0 +1,57 @@
+import urequests as requests   # brug urequests i stedet for requests
+import ujson as json           # MicroPython version af json
+from time import sleep
+from machine import Pin
+import math
+from gpio_lcd import GpioLcd
+
+
+
+# Dit API-kald
+url = "https://api.openweathermap.org/data/2.5/weather?q=Copenhagen,dk&APPID=a472846cd47c408475fded82cadf6336"
+
+# Hent data
+
+response = requests.get(url)
+data = response.json()
+
+Vejr_beskrivelse = data["weather"][0]["description"]
+
+Temp_feels_like = data["main"]["feels_like"]
+
+Temp_celcius = Temp_feels_like - 273.15
+
+Wind_ms = data["wind"]["speed"]
+
+print(Wind_ms)
+        
+lcd = GpioLcd(rs_pin=Pin(27), enable_pin=Pin(25), d4_pin=Pin(33), d5_pin=Pin(32),d6_pin=Pin(21), d7_pin=Pin(22),num_lines=4, num_columns=20)
+
+def check_frost_risk(Wind_ms, Temp_celcius):
+    if Wind_ms < 2 and Temp_celcius < 2:
+        return "Frost"
+    else:
+        return "No frost"
+        
+while True:
+   
+    resultat = check_frost_risk(Wind_ms, Temp_celcius)
+    
+    
+    print(resultat)
+
+    # vis på LCD
+    lcd.move_to(0, 0)
+    lcd.putstr(Vejr_beskrivelse)
+    lcd.move_to(0, 1)
+    lcd.putstr("Feels like %.1f °C" % Temp_celcius)
+    lcd.move_to(9, 2)
+    lcd.putstr("%d m/s" % Wind_ms)
+    lcd.move_to(0, 2)
+    lcd.putstr(resultat)   
+
+    sleep(1)
+
+    
+    
+# lcd.putstr("%d m/s" % (Wind_ms))
