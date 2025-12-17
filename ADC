@@ -1,0 +1,41 @@
+from adc_sub import ADC_substitute
+from time import sleep
+from machine import Pin
+from gpio_lcd import GpioLcd
+
+
+x1=1610
+#3v
+y1=0
+x2=2239
+#4,2
+y2=100
+
+a= (y2-y1)/(x2-x1)
+b = y2 - a*x2
+
+
+lcd = GpioLcd(rs_pin=Pin(27), enable_pin=Pin(25),
+              d4_pin=Pin(33), d5_pin=Pin(32), d6_pin=Pin(21), d7_pin=Pin(22),
+              num_lines=4, num_columns=20)
+
+def formel_batt(x):
+    y= a*x+b # y = 0,159x - 255,962 
+    return int(y)
+
+adc = ADC_substitute(34)
+
+while True:
+    adc_val = adc.read_adc()
+    v = adc.read_voltage()
+    batt_percentage = formel_batt(adc_val)
+    print("ADC: %1d, %.1f V, %.0f %%" % (adc_val, v, batt_percentage))
+    lcd.clear()
+    lcd.move_to(0,0)
+    lcd.putstr(f'batteri: {batt_percentage}%')
+            
+#     v = 0.000838616 * a + 0--------------------------------------------------------.079035
+#     print("ADC: %4d, %.4f V" % (a, v))
+   
+   
+    sleep(1)
